@@ -96,9 +96,11 @@ cp ${CLAUDE_PLUGIN_ROOT}/foundation/tooling/realdb.py $P/tests/realdb.py
 # 1b. A language profile — only when the design says the app is in that language (today:
 #     persian; leave PROFILE empty for English / left-to-right). It replaces the pages, the text
 #     helpers and the sample tests, and adds its own dependency lines. Read its README first.
+#     --checksum matters: in a fresh clone every file has the same timestamp, and rsync's default
+#     size-and-time shortcut would skip an overlay file whose size happens to equal the kit's.
 PROFILE=${PROFILE:-}
 if [ -n "$PROFILE" ]; then
-  rsync -a --exclude README.md --exclude requirements.add.txt --exclude adr \
+  rsync -a --checksum --exclude README.md --exclude requirements.add.txt --exclude adr \
         ${CLAUDE_PLUGIN_ROOT}/foundation/profiles/$PROFILE/ $P/
   cat ${CLAUDE_PLUGIN_ROOT}/foundation/profiles/$PROFILE/requirements.add.txt >> $P/requirements.txt
 fi

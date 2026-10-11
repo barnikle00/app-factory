@@ -30,6 +30,11 @@ def scaffold(tmp_path: Path, *, profile: str, prototype: bool) -> Path:
     plugin = tmp_path / "plugin"        # a clean copy, as a stranger's machine would hold it
     shutil.copytree(ROOT, plugin, ignore=shutil.ignore_patterns(
         "__pycache__", ".pytest_cache", ".cache", ".venv", ".git"))
+    # A fresh `git clone` gives every file the same timestamp; rsync's size-and-time shortcut must
+    # not be able to skip an overlay file. Make that the situation under test.
+    for f in plugin.rglob("*"):
+        if f.is_file():
+            os.utime(f, (1_700_000_000, 1_700_000_000))
     project = tmp_path / "newapp"
     project.mkdir()
     if prototype:                        # a design that names its own prototype skips step 3

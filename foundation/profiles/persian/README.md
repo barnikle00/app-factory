@@ -19,7 +19,7 @@ Nothing in the core changes — the overlay replaces a few files and keeps their
 `build-spec` step 0 does this when `PROFILE=persian`:
 
 ```bash
-rsync -a --exclude README.md --exclude requirements.add.txt --exclude adr \
+rsync -a --checksum --exclude README.md --exclude requirements.add.txt --exclude adr \
       "${CLAUDE_PLUGIN_ROOT}/foundation/profiles/persian/" "$P/"
 cat "${CLAUDE_PLUGIN_ROOT}/foundation/profiles/persian/requirements.add.txt" >> "$P/requirements.txt"
 ```
