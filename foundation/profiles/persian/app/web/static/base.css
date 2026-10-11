@@ -1,0 +1,13 @@
+/* A neutral placeholder. The app's own design layer — carried from its approved prototype —
+   replaces this file (ARCHITECTURE.md → Frontend source). Logical properties only: this is RTL. */
+:root { color-scheme: light dark; --ink: #1d1f1c; --bg: #f7f6f2; --line: #d8d6ce; --bad: #9b2c1f; }
+@media (prefers-color-scheme: dark) { :root { --ink: #ecebe6; --bg: #151715; --line: #33372f; --bad: #f09a8b; } }
+body { margin: 0; font-family: Vazirmatn, Tahoma, sans-serif; color: var(--ink); background: var(--bg); line-height: 1.7; }
+main { max-width: 960px; margin-inline: auto; padding: 24px 16px; }
+.bar { display: flex; gap: 16px; align-items: center; padding: 8px 16px; border-block-end: 1px solid var(--line); }
+.bar form { margin-inline-start: auto; }
+label { display: block; margin-block: 8px; }
+input, button { font: inherit; min-block-size: 44px; padding-inline: 12px; }
+table { border-collapse: collapse; inline-size: 100%; }
+td, th { text-align: start; padding: 8px; border-block-end: 1px solid var(--line); }
+.error { color: var(--bad); }

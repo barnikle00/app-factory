@@ -1,0 +1,68 @@
+/* Forest — a second example brand layer: warm paper, a deep green action colour.
+ *
+ * It exists so the contract is proved against two brands that disagree about almost everything:
+ * cool against warm, a serif display face against a sans one. See `brand-slate.css` for the rules
+ * a brand file obeys.
+ */
+
+:root,
+[data-brand="forest"] {
+  /* ── L0: the brand's own primitives ─────────────────────────────────────── */
+  --_pine: #1F3D33;
+  --_paper: #F3F1EA;
+  --_brass: #B08A3E;
+  --_stone: #A09C8E;
+  --_charcoal: #1C2420;
+
+  /* ── L1: the contract ──────────────────────────────────────────────────── */
+
+  /* surfaces */
+  --surface-page: #F3F1EA;
+  --surface-raised: #FBFAF6;
+  --surface-card: #ECE9DF;
+  --surface-sunken: #E5E8E1;
+  --surface-inverse: #1F3D33;
+
+  /* ink.
+   * --ink-muted is not the stone grey of the palette — that grey is too faint on the paper
+   * page. It is the same hue walked down until it passes on all four surfaces. The palette's
+   * value survives as --rule, where it carries no text and is correct. */
+  --ink: #1C2420;
+  --ink-muted: #5B6258;
+  --ink-on-inverse: #F3F1EA;
+  --ink-accent: #7A5A1E;
+
+  /* action */
+  --action: #1F3D33;
+  --action-ink: #F3F1EA;
+  --action-hover: #142A22;
+
+  /* intent */
+  --warn: #7A5A1E;
+  --warn-tint: #F6EEDB;
+  --danger: #8F2A1F;
+  --danger-tint: #F6DDD7;
+  --ok: #25623F;
+  --ok-tint: #DDEBE2;
+
+  /* decor — never text */
+  --rule: #A09C8E;
+  --accent: #B08A3E;
+  --accent-tint: #F0EBDD;
+
+  /* chrome */
+  --chrome: #1F3D33;
+  --chrome-ink: #F3F1EA;
+  --glass: rgba(31, 61, 51, 0.72);
+  --glass-edge: rgba(243, 241, 234, 0.16);
+
+  /* type — a serif for titles at --display-min and above, a sans for everything else */
+  --font-display: Georgia, "Times New Roman", serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-latin: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --display-min: 18px;
+  --lh-text: 1.6;
+
+  /* depth — warm, because a grey shadow on paper reads as dirt */
+  --shadow-rgb: 28, 36, 32;
+}

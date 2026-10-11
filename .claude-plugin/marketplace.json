@@ -1,0 +1,16 @@
+{
+  "name": "app-factory",
+  "description": "The app-factory process as a Claude Code plugin.",
+  "owner": {
+    "name": "barnikle00"
+  },
+  "plugins": [
+    {
+      "name": "app-factory",
+      "source": "./",
+      "description": "Design interview → locked design → architecture and enforced decisions → phased spec → unattended phase runs behind gates → final check against the design.",
+      "version": "0.1.0",
+      "category": "development"
+    }
+  ]
+}

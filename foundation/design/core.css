@@ -1,0 +1,668 @@
+/* core.css — L2 scales and L3 knobs, and every component rule in the system.
+ *
+ * THE ONE HARD RULE: this file contains no hex value, no `--_` reference, and no
+ * brand word. Every colour it uses is one of the 31 contract slots a brand file
+ * fills. That is what makes a second brand a file swap instead of a fork — and it
+ * is exactly what the prior art could not do: 179 of its colour references name a
+ * brand colour against 113 naming a role.
+ *
+ * THE SECOND RULE: logical properties only. `margin-left` does not exist here.
+ * The prior art's other Jinja app pinned its sidebar to the physical left in an
+ * RTL application, which is what happens when the rule is remembered rather than
+ * structural.
+ *
+ * Order: L2 scales → L3 knobs → reset → layout → components. Components are
+ * grouped to match the 17 macros in `macros.html`; a macro and its rules are
+ * meant to be read together.
+ */
+
+/* ═══ L2 — the scales ══════════════════════════════════════════════════════ */
+
+:root {
+  /* Spacing. Two-sizes-apart, so adjacent steps are visibly different and an
+   * agent choosing between them cannot produce a near-miss. The prior art's
+   * scale was governed by only 49 of its 203 spacing declarations — 37 distinct
+   * ad-hoc values filled the gap, because the scale had steps close enough that
+   * reaching past it felt harmless. These do not.                             */
+  --space-1: 0.25rem;   /*  4px — inside a pill, icon-to-text                  */
+  --space-2: 0.5rem;    /*  8px — inside a control                            */
+  --space-3: 0.75rem;   /* 12px — table cell padding                          */
+  --space-4: 1rem;      /* 16px — the default gap between anything            */
+  --space-5: 1.5rem;    /* 24px — inside a card                               */
+  --space-6: 2rem;      /* 32px — between cards                               */
+  --space-7: 3rem;      /* 48px — between page sections                       */
+  --space-8: 4rem;      /* 64px — page top/bottom                             */
+
+  /* Radius. Derived from one knob (--radius-base, declared once in L3 below)
+   * so a brand can feel sharper or softer without 40 edits.                  */
+  --radius-1: calc(var(--radius-base) * 0.6);   /* pills, small chips          */
+  --radius-2: var(--radius-base);               /* controls, inputs, buttons   */
+  --radius-3: calc(var(--radius-base) * 1.6);   /* cards, modals, panels       */
+  --radius-pill: 999px;
+
+  /* Type. Fluid between 360px and 1280px, hand-written because the formula is
+   * ~6 lines and a 2,000-property library is not worth carrying for it.
+   * --font-scale (L3) multiplies the whole ladder in one place.              */
+  --text-xs:  calc(0.75rem  * var(--font-scale));
+  --text-sm:  calc(0.875rem * var(--font-scale));
+  --text-md:  calc(1rem     * var(--font-scale));
+  --text-lg:  calc(1.125rem * var(--font-scale));
+  --text-xl:  calc(clamp(1.25rem, 1.1rem + 0.7vw, 1.5rem)  * var(--font-scale));
+  --text-2xl: calc(clamp(1.5rem,  1.3rem + 1.1vw, 2rem)    * var(--font-scale));
+  --text-3xl: calc(clamp(1.875rem, 1.5rem + 1.8vw, 2.75rem) * var(--font-scale));
+
+  --lh-tight: 1.25;     /* headings only — tall marks and descenders need room */
+  --lh-body: var(--lh-text);   /* the brand's line-height floor — see its --lh-text */
+
+  /* Weight. Only these three are used; a variable font covers all of them.   */
+  --weight-body: 400;
+  --weight-medium: 500;
+  --weight-bold: 700;
+
+  /* Content-keyed widths. The rename that removes judgement: there is exactly
+   * one right width for an amount field and its name is the word "amount".
+   * An agent asked to pick between --w-3 and --w-4 will pick wrong half the
+   * time; asked for an amount field, it cannot.                              */
+  --w-amount: 9rem;
+  --w-count: 4.5rem;
+  --w-date: 7.5rem;
+  --w-status: 6.5rem;
+  --w-name: 12rem;
+  --w-search: 18rem;
+  --w-field: 100%;      /* the default: fill the form column                  */
+
+  /* Elevation. Composed from the brand's own --shadow-rgb, so the shadow is
+   * warm on a cream page instead of grey — a grey shadow on cream reads as
+   * dirt. The geometry lives here once; the brand supplies only the hue.     */
+  --shadow-1: 0 1px 2px rgba(var(--shadow-rgb), 0.06),
+              0 1px 3px rgba(var(--shadow-rgb), 0.05);
+  --shadow-2: 0 2px 6px rgba(var(--shadow-rgb), 0.07),
+              0 6px 16px rgba(var(--shadow-rgb), 0.06);
+  --shadow-3: 0 8px 24px rgba(var(--shadow-rgb), 0.10),
+              0 20px 48px rgba(var(--shadow-rgb), 0.08);
+
+  /* Touch. The floor, not a suggestion. Every interactive element carries
+   * data-tap, so this selects on an attribute instead of a hand-maintained
+   * list of class names that rots the first time a macro is added.           */
+  --tap: 44px;
+
+  /* Motion. --motion is an L3 knob: set to 0 and every transition in the
+   * system goes to zero, which is also what prefers-reduced-motion does.     */
+  --dur-fast: calc(120ms * var(--motion));
+  --dur: calc(200ms * var(--motion));
+  --ease: cubic-bezier(0.2, 0, 0.1, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Focus. One ring, everywhere, built from --action so it is always visible
+   * against the brand rather than a borrowed blue.                           */
+  --focus-ring: 0 0 0 2px var(--surface-page), 0 0 0 4px var(--action);
+
+  /* Breakpoints are documented, not tokenised — custom properties cannot be
+   * used in a media query, and a token that only works half the time is worse
+   * than none. The system has two: 48rem (768px) and 64rem (1024px).         */
+}
+
+/* ═══ L3 — the six knobs, and only six ═════════════════════════════════════
+ * Not a component-token layer. A full one triples the vocabulary an agent must
+ * hold in context and buys theming that a two-brand system will never spend. */
+
+:root {
+  --density: 1;            /* row and control padding multiplier: 0.8 … 1.2   */
+  --page-max: 80rem;       /* content column cap                             */
+  --radius-base: 10px;     /* every radius in the system derives from this    */
+  --chrome-h: 3.5rem;      /* app-bar height                                  */
+  --font-scale: 1;         /* whole type ladder                               */
+  --motion: 1;             /* 0 disables every transition in the system       */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --motion: 0; }
+}
+
+/* ═══ Reset — the minimum, not a library ═══════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  margin: 0;
+  background: var(--surface-page);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  line-height: var(--lh-body);
+  font-weight: var(--weight-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  line-height: var(--lh-tight);
+  color: var(--ink);
+}
+h1 { font-size: var(--text-3xl); }
+h2 { font-size: var(--text-2xl); }
+h3 { font-size: var(--text-xl); }
+h4 { font-size: var(--text-lg); }
+
+/* The display face below --display-min stops being type and becomes texture.
+ * A brand that forbids mixing its display and body voices in one frame gets
+ * that rule enforced by this floor instead of remembered.                      */
+h1, h2, h3, h4 { font-size: max(var(--display-min), 1em); }
+
+p { margin: 0 0 var(--space-4); }
+p:last-child { margin-block-end: 0; }
+
+a {
+  color: var(--ink-accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+a:hover { color: var(--action-hover); }
+
+img, svg, video { max-width: 100%; height: auto; display: block; }
+
+/* Every focusable thing, one ring. :focus-visible only — a mouse click on a
+ * button should not light up.                                               */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-2);
+}
+
+/* The touch floor, selecting on the attribute every macro writes.           */
+[data-tap] {
+  min-block-size: var(--tap);
+  min-inline-size: var(--tap);
+}
+[data-tap][data-tap="inline"] { min-inline-size: 0; }
+
+/* ═══ Layout ═══════════════════════════════════════════════════════════════ */
+
+.page {
+  max-inline-size: var(--page-max);
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+  padding-block: var(--space-6) var(--space-8);
+}
+
+.stack > * + * { margin-block-start: var(--space-4); }
+.stack-lg > * + * { margin-block-start: var(--space-6); }
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.row-between { justify-content: space-between; }
+
+.grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-block-end: var(--space-4);
+}
+
+/* ═══ Chrome — the app bar ═════════════════════════════════════════════════ */
+
+.chrome {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 40;
+  block-size: var(--chrome-h);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding-inline: var(--space-4);
+  background: var(--chrome);        /* the solid fallback, first…            */
+  background: var(--glass);         /* …overridden where blur is supported   */
+  border-block-end: 1px solid var(--glass-edge);
+  backdrop-filter: blur(12px);
+  color: var(--chrome-ink);
+}
+.chrome a, .chrome .chrome-link { color: var(--chrome-ink); text-decoration: none; }
+.chrome-brand {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+}
+.chrome-spacer { margin-inline-start: auto; }
+
+/* ═══ panel() — the one inverted surface ═══════════════════════════════════
+ * Both identity documents reserve the dark tone for a single emphatic block per
+ * page — a hero, a summary bar, a footer. Giving it a component is what keeps
+ * --surface-inverse from being reached for as "a darker card".              */
+
+.panel-inverse {
+  padding: var(--space-6);
+  background: var(--surface-inverse);
+  color: var(--ink-on-inverse);
+  border-radius: var(--radius-3);
+}
+.panel-inverse h1, .panel-inverse h2, .panel-inverse h3, .panel-inverse h4,
+.panel-inverse .muted { color: var(--ink-on-inverse); }
+.panel-inverse .btn-secondary {
+  background: transparent;
+  color: var(--ink-on-inverse);
+  border-color: var(--glass-edge);
+}
+
+/* ═══ Decor — accent, which is structurally incapable of carrying text ═════
+ * --accent and --accent-tint appear here and nowhere else, and never as
+ * `color`. The brand check fails any brand whose accent grows readable enough
+ * to tempt, and the template linter rejects `color: var(--accent)` outright.  */
+
+.rule-accent {
+  block-size: 3px;
+  inline-size: var(--space-8);
+  background: var(--accent);
+  border-radius: var(--radius-pill);
+  border: none;
+  margin: 0 0 var(--space-4);
+}
+.card-featured { background: var(--accent-tint); border-color: var(--accent); }
+tr[data-highlight] > td { background: var(--accent-tint); }
+
+/* ═══ button() and actions() ═══════════════════════════════════════════════
+ * `actions()` has ONE primary slot in its signature, so "at most one primary
+ * per block" is unrepresentable rather than reviewed.                        */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding-inline: calc(var(--space-4) * var(--density));
+  padding-block: calc(var(--space-2) * var(--density));
+  border: 1px solid transparent;
+  border-radius: var(--radius-2);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: 1.4;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease),
+              border-color var(--dur-fast) var(--ease);
+}
+.btn:disabled, .btn[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
+
+.btn-primary   { background: var(--action); color: var(--action-ink); }
+.btn-primary:hover:not(:disabled) { background: var(--action-hover); }
+
+.btn-secondary { background: var(--surface-raised); color: var(--ink);
+                 border-color: var(--rule); }
+.btn-secondary:hover:not(:disabled) { background: var(--surface-card); }
+
+.btn-quiet     { background: transparent; color: var(--ink-muted); }
+.btn-quiet:hover:not(:disabled) { background: var(--surface-card); color: var(--ink); }
+
+.btn-danger    { background: var(--danger); color: var(--surface-page); }
+
+.btn-sm { padding-block: var(--space-1); font-size: var(--text-xs); }
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.actions-end { justify-content: flex-end; }
+
+/* ═══ field() and select() ═════════════════════════════════════════════════ */
+
+.field { display: block; }
+.field + .field { margin-block-start: var(--space-4); }
+
+.field-label {
+  display: block;
+  margin-block-end: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--ink);
+}
+.field-hint {
+  display: block;
+  margin-block-start: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+}
+.field-error {
+  display: block;
+  margin-block-start: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--danger);
+}
+
+.input, .select, .textarea {
+  inline-size: var(--w-field);
+  padding-inline: var(--space-3);
+  padding-block: calc(var(--space-2) * var(--density));
+  background: var(--surface-raised);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-2);
+  font: inherit;
+  font-size: var(--text-sm);
+  line-height: var(--lh-body);
+}
+.input:hover, .select:hover, .textarea:hover { border-color: var(--ink-muted); }
+.input[aria-invalid="true"], .select[aria-invalid="true"] { border-color: var(--danger); }
+.input::placeholder, .textarea::placeholder { color: var(--ink-muted); opacity: 1; }
+.textarea { min-block-size: 6rem; resize: vertical; }
+
+/* select() emits this wrapper itself. A <select> cannot carry a pseudo-element,
+ * and `background-position` has no logical form — a chevron placed with it sits a
+ * fixed distance from the PHYSICAL left and lands on the wrong side the moment the
+ * system meets an LTR page. Same construction rule as table(): the macro writes the
+ * container, so the correct thing is the only thing that can be written.          */
+.select-wrap { position: relative; display: inline-block; inline-size: var(--w-field); }
+.select-wrap::after {
+  content: "";
+  position: absolute;
+  inset-inline-end: var(--space-3);
+  inset-block-start: 50%;
+  inline-size: 0.45em;
+  block-size: 0.45em;
+  margin-block-start: -0.3em;
+  /* ds-allow: physical — a chevron is rotational geometry, not text direction.
+   * The down-pointing shape is a square corner built from the PHYSICAL right and
+   * bottom borders, rotated 45°. Written logically it flips with the writing
+   * direction and the arrow ends up pointing left, which is what the first
+   * version of this rule actually did on screen. Caught by looking at it.     */
+  border-right: 2px solid var(--ink-muted);
+  border-bottom: 2px solid var(--ink-muted);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+.select {
+  appearance: none;
+  padding-inline-end: var(--space-6);
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  font-size: var(--text-sm);
+}
+.check input { inline-size: 1.1em; block-size: 1.1em; accent-color: var(--action); }
+
+/* ═══ toolbar() — the filter bar ═══════════════════════════════════════════ */
+
+.toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-4);
+  background: var(--surface-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-3);
+}
+.toolbar .field { inline-size: auto; }
+.toolbar .input[type="search"] { inline-size: var(--w-search); max-inline-size: 100%; }
+
+/* ═══ table() — writes its own scroll container ════════════════════════════
+ * The macro emits .table-scroll around every table, so "wide content scrolls
+ * inside itself" is a property of the construct rather than a review note.
+ * Without it the page body scrolls horizontally on a phone, which is the
+ * single most common RTL dashboard failure.                                  */
+
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-3);
+  background: var(--surface-raised);
+}
+
+.table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+.table th, .table td {
+  padding-inline: var(--space-3);
+  padding-block: calc(var(--space-3) * var(--density));
+  text-align: start;
+  border-block-end: 1px solid var(--rule);
+}
+.table th {
+  font-weight: var(--weight-medium);
+  color: var(--ink-muted);      /* the slot the brand check forced to 4.5:1   */
+  background: var(--surface-card);
+  white-space: nowrap;
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
+}
+.table tbody tr:last-child td { border-block-end: none; }
+.table tbody tr:hover { background: var(--surface-sunken); }
+.table td.num, .table th.num { text-align: end; }
+
+/* ═══ amount() and datestamp() — the numeric islands ═══════════════════════
+ * THE ONE ANNOTATED EXCEPTION to logical-properties-only. A monetary figure
+ * and a date are read left-to-right even inside right-to-left prose; without this
+ * the direction rule forces the wrong thing and the digits reorder. It is
+ * confined to these two constructs and nowhere else.                         */
+
+.amount, .datestamp {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-latin);
+}
+.amount { inline-size: var(--w-amount); text-align: end; }
+.datestamp { inline-size: var(--w-date); color: var(--ink-muted); }
+.amount-neg { color: var(--danger); }
+
+/* ═══ card() and stat() ════════════════════════════════════════════════════ */
+
+.card {
+  padding: var(--space-5);
+  background: var(--surface-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-3);
+  box-shadow: var(--shadow-1);
+}
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-block-end: var(--space-4);
+}
+.card-title { font-size: var(--text-lg); font-weight: var(--weight-bold); }
+
+.stat {
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface-card);
+  border-radius: var(--radius-3);
+}
+.stat-label { font-size: var(--text-xs); color: var(--ink-muted); }
+.stat-value {
+  margin-block-start: var(--space-1);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+.stat-unit { font-size: var(--text-sm); color: var(--ink-muted); margin-inline-start: var(--space-1); }
+
+/* ═══ pill() and alert() — the intent family ═══════════════════════════════
+ * Both read their colour from the same three intent pairs, so a status and its
+ * message can never disagree about what "danger" looks like.                 */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding-inline: var(--space-3);
+  padding-block: var(--space-1);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+}
+.pill-ok     { background: var(--ok-tint);     color: var(--ok); }
+.pill-warn   { background: var(--warn-tint);   color: var(--warn); }
+.pill-danger { background: var(--danger-tint); color: var(--danger); }
+.pill-neutral{ background: var(--surface-sunken); color: var(--ink-muted); }
+
+.alert {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-3);
+  border-inline-start: 3px solid currentColor;
+  font-size: var(--text-sm);
+}
+.alert-ok     { background: var(--ok-tint);     color: var(--ok); }
+.alert-warn   { background: var(--warn-tint);   color: var(--warn); }
+.alert-danger { background: var(--danger-tint); color: var(--danger); }
+.alert-body { color: var(--ink); }
+
+/* ═══ empty() — the state that never gets designed ═════════════════════════
+ * Given a macro so it is written by default rather than discovered in
+ * production. `design-task` asked zero questions about empty states across
+ * every project measured; this is the structural answer to that.             */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-5);
+  text-align: center;
+  color: var(--ink-muted);
+}
+.empty-title { font-size: var(--text-lg); font-weight: var(--weight-medium); color: var(--ink); }
+.empty-hint { max-inline-size: 32rem; font-size: var(--text-sm); }
+
+/* ═══ modal() ══════════════════════════════════════════════════════════════ */
+
+.modal {
+  border: none;
+  padding: 0;
+  max-inline-size: min(36rem, calc(100vw - var(--space-6)));
+  inline-size: 100%;
+  background: var(--surface-raised);
+  border-radius: var(--radius-3);
+  box-shadow: var(--shadow-3);
+  color: var(--ink);
+}
+.modal::backdrop { background: rgba(var(--shadow-rgb), 0.45); }
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-block-end: 1px solid var(--rule);
+}
+.modal-body { padding: var(--space-5); }
+.modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface-card);
+}
+
+/* ═══ tabs() ═══════════════════════════════════════════════════════════════ */
+
+.tabs {
+  display: flex;
+  gap: var(--space-1);
+  border-block-end: 1px solid var(--rule);
+  overflow-x: auto;
+}
+.tab {
+  padding-inline: var(--space-4);
+  padding-block: var(--space-3);
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  border-block-end: 2px solid transparent;
+  margin-block-end: -1px;
+}
+.tab[aria-selected="true"] { color: var(--ink); border-block-end-color: var(--action); }
+
+/* ═══ pagination() and breadcrumb() ════════════════════════════════════════ */
+
+.pagination { display: flex; align-items: center; gap: var(--space-2); justify-content: center; }
+.pagination-current { font-size: var(--text-sm); color: var(--ink-muted); }
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+  flex-wrap: wrap;
+}
+.breadcrumb a { color: var(--ink-muted); text-decoration: none; }
+.breadcrumb a:hover { color: var(--ink); text-decoration: underline; }
+/* Not --rule. A separator is decoration semantically and TEXT optically:
+ * the browser-measured check caught this at 3.36:1, which no source check
+ * could see. Decor slots never carry a painted glyph.                    */
+.breadcrumb-sep { color: var(--ink-muted); }
+
+/* ═══ Utilities — a closed set, because an open one becomes a framework ════ */
+
+/* Content-keyed widths, as classes. The macros take width="amount" and emit
+ * .w-amount, so no template ever writes a CSS declaration — which is what lets
+ * the linter reject `style=` outright instead of allowing an exception that
+ * immediately becomes the hole everything else goes through.                 */
+.w-amount { inline-size: var(--w-amount); }
+.w-count  { inline-size: var(--w-count); }
+.w-date   { inline-size: var(--w-date); }
+.w-status { inline-size: var(--w-status); }
+.w-name   { inline-size: var(--w-name); }
+.w-search { inline-size: var(--w-search); }
+
+.muted { color: var(--ink-muted); }
+.nowrap { white-space: nowrap; }
+.visually-hidden {
+  position: absolute; inline-size: 1px; block-size: 1px;
+  padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
+/* ═══ Small screens ════════════════════════════════════════════════════════ */
+
+@media (max-width: 48rem) {
+  .page { padding-inline: var(--space-3); padding-block: var(--space-4) var(--space-7); }
+  .toolbar { padding: var(--space-3); }
+  .toolbar .input[type="search"] { inline-size: 100%; }
+  .modal { max-inline-size: 100%; }
+  /* Density does not shrink on a phone — a 44px target is 44px everywhere.  */
+}
+
+/* ═══ Print ════════════════════════════════════════════════════════════════ */
+
+@media print {
+  .chrome, .toolbar, .actions, .pagination { display: none; }
+  body { background: none; }
+  .card, .table-scroll { box-shadow: none; border-color: var(--ink-muted); }
+}

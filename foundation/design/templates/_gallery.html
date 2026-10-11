@@ -1,0 +1,106 @@
+{#- The living reference. Every macro, rendered by the real macros against the
+    real core.css and the real brand file — so it cannot drift from what ships.
+    A hand-written reference page is a second source of truth about a component
+    set that already exists in code, which is the exact failure this replaces:
+    the prior art's mockups were copied byte-identically into a second project
+    and both are now wrong. -#}
+{% extends "base.html" %}
+{% import "ds.html" as ds %}
+{% block title %}Component gallery — {{ ds_brand }}{% endblock %}
+
+{% block body %}
+<div class="stack-lg">
+
+  <div>
+    <hr class="rule-accent">
+    <h1>Component gallery</h1>
+    <p class="muted">Active brand: <strong>{{ ds_brand }}</strong> ·
+      {{ ds_brands|length }} brands in the system ·
+      <a href="/-/brands">see all</a></p>
+  </div>
+
+  {% call ds.card("Buttons — and why only one primary is possible") %}
+    <p class="muted">The signature of <code>actions()</code> has one slot for "primary". Two primary
+      buttons in one block cannot be written, rather than being caught in review.</p>
+    {{ ds.actions(primary={"label": "Save"},
+                  secondary=[{"label": "Cancel"}, {"label": "Draft", "intent": "quiet"}]) }}
+    <div class="row">
+      {{ ds.button("Delete", intent="danger") }}
+      {{ ds.button("Small", intent="secondary", size="sm") }}
+      {{ ds.button("Disabled", intent="primary", disabled=true) }}
+    </div>
+  {% endcall %}
+
+  {% call ds.card("Statuses and messages") %}
+    <div class="row">
+      {{ ds.pill("Active", "ok") }}{{ ds.pill("Pending", "warn") }}
+      {{ ds.pill("Rejected", "danger") }}{{ ds.pill("Draft") }}
+    </div>
+    <div class="stack">
+      {{ ds.alert("Payment recorded.", intent="ok") }}
+      {{ ds.alert("Three transactions have no seller.", intent="warn", title="Needs review") }}
+      {{ ds.alert("The payment gateway is unreachable.", intent="danger") }}
+    </div>
+  {% endcall %}
+
+  {% call ds.card("Numbers — the only place left-to-right is correct") %}
+    <div class="grid">
+      {{ ds.stat("Sales today", ds.amount(48250000), "USD") }}
+      {{ ds.stat("Transactions", "124") }}
+      {{ ds.stat("Average", ds.amount(389113), "USD") }}
+    </div>
+  {% endcall %}
+
+  {% call ds.card("Table — it writes its own scroll container") %}
+    {{ ds.table(gallery_columns, gallery_rows, highlight=gallery_highlight) }}
+    {{ ds.pagination(2, 7, gallery_url) }}
+  {% endcall %}
+
+  {% call ds.card("Empty table — the state that is never designed") %}
+    {{ ds.table(gallery_columns, [],
+                empty_title="No transactions yet",
+                empty_hint="The first sale will show up here.") }}
+  {% endcall %}
+
+  {% call ds.card("Form") %}
+    {% call ds.toolbar() %}
+      {{ ds.field("q", "Search", kind="search", width="search", placeholder="Name or number") }}
+      {{ ds.select("status", "Status", [{"value": "", "label": "All"},
+                                       {"value": "ok", "label": "Approved"}], width="status") }}
+      {{ ds.field("from", "From date", kind="date", width="date") }}
+      {{ ds.button("Apply", intent="primary", type="submit") }}
+    {% endcall %}
+    <div class="stack">
+      {{ ds.field("name", "Seller name", required=true, hint="As written in the contract") }}
+      {{ ds.field("amount", "Amount", kind="number", width="amount", value="1250000") }}
+      {{ ds.field("note", "Note", kind="textarea") }}
+      {{ ds.field("bad", "Field with an error", value="12x", error="Enter digits only") }}
+      {{ ds.field("agree", "I accept the terms", kind="checkbox") }}
+    </div>
+  {% endcall %}
+
+  {% call ds.card("Navigation") %}
+    {{ ds.breadcrumb([{"href": "/", "label": "Home"},
+                      {"href": "/sales", "label": "Sales"},
+                      {"label": "Transaction 882"}]) }}
+    {{ ds.tabs([{"key": "a", "href": "#a", "label": "All"},
+                {"key": "b", "href": "#b", "label": "Approved"},
+                {"key": "c", "href": "#c", "label": "Returned"}], "a") }}
+  {% endcall %}
+
+  <section class="panel-inverse">
+    <h3>The only dark surface</h3>
+    <p>Both identity documents reserve the dark surface for one block per page.
+      Having a component for it is what stops it being used as a
+      "darker card".</p>
+    {{ ds.actions(primary={"label": "Start"}, secondary=[{"label": "Later"}]) }}
+  </section>
+
+  {{ ds.button("Open dialog", intent="secondary", attrs='data-ds-open="demo"') }}
+  {% call ds.modal("demo", "A dialog") %}
+    <p>This is a real <code>&lt;dialog&gt;</code>. Closing it is the browser's job,
+      not our JavaScript.</p>
+  {% endcall %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}ورود{% endblock %}
+{% block content %}
+<h1>ورود</h1>
+{% if error %}<p class="error" role="alert">نام یا رمز درست نیست.</p>{% endif %}
+<form method="post" action="/login">
+  <input type="hidden" name="next" value="{{ next }}">
+  <label>نام <input name="name" required autocomplete="username"></label>
+  <label>رمز <input name="password" type="password" required autocomplete="current-password" dir="ltr"></label>
+  <button type="submit">ورود</button>
+</form>
+{% endblock %}

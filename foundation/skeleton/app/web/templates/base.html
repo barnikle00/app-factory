@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Panel{% endblock %}</title>
+  <link rel="stylesheet" href="/static/base.css">
+  {# The app's own look replaces this file: ARCHITECTURE.md → Frontend source. #}
+</head>
+<body>
+  {% if me %}
+  <header class="bar">
+    <a href="/">Home</a>
+    {% if me.role == "owner" %}<a href="/switches">Switches</a>{% endif %}
+    <form method="post" action="/logout"><button type="submit">Sign out</button></form>
+  </header>
+  {% endif %}
+  <main>{% block content %}{% endblock %}</main>
+</body>
+</html>

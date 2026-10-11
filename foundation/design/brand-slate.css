@@ -1,0 +1,78 @@
+/* Slate — an example brand layer: cool, neutral, a navy action colour.
+ *
+ * Written first, on purpose. A contract proved against a single brand is not proved at all: the
+ * first brand's assumptions hide inside it and only surface when a second one arrives, by which
+ * time the core stylesheet has grown around them. `brand-forest.css` is the second.
+ *
+ * This file may contain ONLY :root, [data-brand], and @font-face. No selectors, no components, no
+ * layout. Everything here is a value; nothing here is a rule.
+ *
+ * To make your own brand: copy this file, rename the brand, fill all 31 slots, run
+ * `scripts/ds-brand-check.py`. The ink slots are defined by the contrast ratio they must reach,
+ * not by the hue a brand book names.
+ */
+
+:root,
+[data-brand="slate"] {
+  /* ── L0: the brand's own primitives ────────────────────────────────────────
+   * Underscored so one grep — `var(--_` outside a brand file — is the whole
+   * multi-brand guarantee. Never referenced from core.css or a template.     */
+  --_navy: #1E2A3A;
+  --_mist: #F4F5F7;
+  --_blue: #7FA3DB;
+  --_steel: #9AA3B0;
+  --_graphite: #1B1F27;
+
+  /* ── L1: the contract ──────────────────────────────────────────────────── */
+
+  /* surfaces */
+  --surface-page: #F4F5F7;
+  --surface-raised: #FFFFFF;
+  --surface-card: #ECEEF2;
+  --surface-sunken: #E4E7EC;
+  --surface-inverse: #1E2A3A;
+
+  /* ink — defined by required ratio, not by hue. */
+  --ink: #1B1F27;
+  --ink-muted: #505B6B;
+  --ink-on-inverse: #F4F5F7;
+  /* The brand's mid blue is decor; this is the same hue darkened until it can carry text. */
+  --ink-accent: #1D4F91;
+
+  /* action */
+  --action: #1E2A3A;
+  --action-ink: #F4F5F7;
+  --action-hover: #121A26;
+
+  /* intent */
+  --warn: #8A5A00;
+  --warn-tint: #FBF1DC;
+  --danger: #9B2226;
+  --danger-tint: #F8E1E1;
+  --ok: #1E6B3E;
+  --ok-tint: #E1F1E7;
+
+  /* decor — never text. The linter rejects `color: var(--accent|--rule)`,
+   * and the brand check fails if either becomes readable enough to tempt.    */
+  --rule: #9AA3B0;
+  --accent: #7FA3DB;
+  --accent-tint: #E6EEFB;
+
+  /* chrome */
+  --chrome: #1E2A3A;
+  --chrome-ink: #F4F5F7;
+  --glass: rgba(30, 42, 58, 0.72);
+  --glass-edge: rgba(244, 245, 247, 0.16);
+
+  /* type — a fact about the typeface, which is why it lives in the brand layer. Put the
+   * @font-face blocks for any web font in fonts.css; name the faces here. */
+  --font-display: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-latin: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --display-min: 18px;
+  /* The body line-height floor. Scripts with tall marks (Arabic, Persian, Devanagari…) need 1.7. */
+  --lh-text: 1.6;
+
+  /* depth — core.css composes --shadow-1..3 from this, so the geometry is not duplicated. */
+  --shadow-rgb: 27, 31, 39;
+}

@@ -1,0 +1,5 @@
+# `default`, not `basic`: at basic, `def f(x: int) -> str: return x` passes. Cheap from line one,
+# hundreds of errors if turned on at phase ten (the first factory app, 2026-09-16).
+preset = "default"
+project-includes = ["app", "tests"]
+project-excludes = ["**/.venv/**", "**/__pycache__/**", "alembic/versions/**"]

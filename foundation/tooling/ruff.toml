@@ -1,0 +1,59 @@
+# The factory's canonical ruff configuration.
+#
+# Referenced by the enforcement hooks in the plugin's hooks/hooks.json via
+# `ruff --config`, so no existing project has to be modified to be linted.
+# A project that wants to diverge copies this file and edits its own copy.
+#
+# Every entry below is here because it was MEASURED on a real codebase
+# (an older project, 267 Python files, 2026-09-10), not because it is
+# a common default. The two ignore blocks are the difference between 1,373
+# findings and 668 — and between a usable gate and one that gets switched off
+# in its first week.
+
+line-length = 100
+target-version = "py311"
+
+[lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "C4", "RUF"]
+
+ignore = [
+  # Line length is the formatter's job. A linter that also polices width
+  # produces two authorities for one rule and they disagree at the margin.
+  "E501",
+
+  # RUF001/2/3 flag Persian and Arabic characters as "ambiguous unicode".
+  # This workspace's code, strings, comments and docstrings are Persian:
+  # these three rules produced 705 findings on one project — 51% of the
+  # total — and every one of them was the language, not a defect.
+  "RUF001",
+  "RUF002",
+  "RUF003",
+]
+
+# F401 is REPORTED, never auto-fixed. An import that looks unused in one file is
+# often re-exported to another: in an older project, app/sales/scenarios.py
+# imports MAX_BLOCKS without using it because app/help.py imports it from there.
+# Auto-removing it produced a web app and a bot that fail at startup. Deleting an
+# import is a decision, not tidying.
+unfixable = ["F401"]
+
+[lint.flake8-bugbear]
+# FastAPI's entire dependency-injection API is, syntactically, a function
+# call in a default argument — which is what B008 exists to catch. Without
+# this list B008 fires 213 times on correct FastAPI code.
+extend-immutable-calls = [
+  "fastapi.Depends",
+  "fastapi.Query",
+  "fastapi.Form",
+  "fastapi.File",
+  "fastapi.Header",
+  "fastapi.Body",
+  "fastapi.Path",
+  "fastapi.Cookie",
+]
+
+[lint.per-file-ignores]
+# Test files legitimately import for side effects and shadow names.
+"tests/**" = ["F401", "F811"]
+# Migrations are generated; their import order and style are not ours.
+"**/alembic/versions/**" = ["I001", "E402", "F401"]

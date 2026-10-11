@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Switches{% endblock %}
+{% block content %}
+<h1>Switches</h1>
+<p>Every action this app takes in an outside system has a switch, and stays off until someone
+turns it on. Turning a switch on again also clears its automatic stop.</p>
+<table>
+  <thead><tr><th>Switch</th><th>State</th><th>Last changed</th><th></th></tr></thead>
+  <tbody>
+  {% for s in switches %}
+    <tr>
+      <td dir="ltr">{{ s.name }}</td>
+      <td>{{ "On" if s.is_on else "Off" }}</td>
+      <td>{{ s.changed_at | local }}</td>
+      <td>
+        <form method="post" action="/switches">
+          <input type="hidden" name="name" value="{{ s.name }}">
+          <input type="hidden" name="on" value="{{ "0" if s.is_on else "1" }}">
+          <button type="submit">{{ "Turn off" if s.is_on else "Turn on" }}</button>
+        </form>
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="4">No switches yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+<form method="post" action="/switches">
+  <label>New switch <input name="name" dir="ltr" placeholder="write:example" required></label>
+  <input type="hidden" name="on" value="0">
+  <button type="submit">Create (off)</button>
+</form>
+{% endblock %}

@@ -1,0 +1,282 @@
+{#-
+  ds.html — the seventeen macros. Import once:  {% raw %}{% import "ds.html" as ds %}{% endraw %}
+
+  WHY MACROS AND NOT CLASSES. The prior art defines 216 classes and emits ~175 of
+  them by hand from templates. That is 175 chances per screen to type a class that
+  does not exist, to forget the scroll container, to put two primary buttons in one
+  block — and 216 names an agent must hold in context to write one page. Here the
+  agent holds seventeen signatures, and the rules it must not break are encoded in
+  those signatures rather than written down beside them:
+
+    · actions() has ONE primary slot, so "at most one primary per block" is
+      unrepresentable instead of reviewed.
+    · table() writes its own .table-scroll, so a phone cannot scroll the page body
+      sideways — the single most common RTL dashboard failure.
+    · select() writes its own wrapper, because a <select> cannot carry the chevron.
+    · button() validates intent against a closed set and fails loudly in dev.
+    · every interactive element carries data-tap, so the 44px touch floor selects
+      on an attribute instead of a hand-maintained list of class names that rots
+      the first time a macro is added.
+    · amount() and datestamp() isolate direction, which is the only place in the
+      system where left-to-right is correct.
+
+  Everything visual lives in core.css. A macro here writes structure and never a
+  style attribute — the linter rejects `style=` in a template outright.
+-#}
+
+{#- ── 1. button ──────────────────────────────────────────────────────────── -#}
+{% macro button(label, intent="secondary", type="button", href=none, name=none,
+                value=none, disabled=false, size=none, icon=none, attrs="") -%}
+  {%- set _ok = ("primary", "secondary", "quiet", "danger") -%}
+  {%- if intent not in _ok -%}
+    {{ ds_fail("button(intent=%r) — the closed set is %s" % (intent, _ok|join(", "))) }}
+  {%- endif -%}
+  {%- set _cls = "btn btn-" ~ intent ~ (" btn-sm" if size == "sm" else "") -%}
+  {%- if href -%}
+    <a class="{{ _cls }}" href="{{ href }}" data-tap
+       {%- if disabled %} aria-disabled="true"{% endif %} {{ attrs|safe }}>
+      {%- if icon %}<span aria-hidden="true">{{ icon }}</span>{% endif -%}
+      {{ label }}</a>
+  {%- else -%}
+    <button class="{{ _cls }}" type="{{ type }}" data-tap
+       {%- if name %} name="{{ name }}"{% endif -%}
+       {%- if value is not none %} value="{{ value }}"{% endif -%}
+       {%- if disabled %} disabled{% endif %} {{ attrs|safe }}>
+      {%- if icon %}<span aria-hidden="true">{{ icon }}</span>{% endif -%}
+      {{ label }}</button>
+  {%- endif -%}
+{%- endmacro %}
+
+{#- ── 2. actions — ONE primary slot, by signature ─────────────────────────── -#}
+{% macro actions(primary=none, secondary=[], align="end") -%}
+  <div class="actions{{ ' actions-end' if align == 'end' }}">
+    {%- for s in secondary -%}
+      {{ button(s.label, intent=s.get("intent", "secondary"), href=s.get("href"),
+                type=s.get("type", "button"), name=s.get("name"),
+                value=s.get("value"), disabled=s.get("disabled", false)) }}
+    {%- endfor -%}
+    {%- if primary -%}
+      {{ button(primary.label, intent=primary.get("intent", "primary"),
+                href=primary.get("href"), type=primary.get("type", "submit"),
+                name=primary.get("name"), value=primary.get("value"),
+                disabled=primary.get("disabled", false)) }}
+    {%- endif -%}
+  </div>
+{%- endmacro %}
+
+{#- ── 3. field — text, number, date, password, textarea, checkbox ─────────── -#}
+{% macro field(name, label, kind="text", value="", hint=none, error=none,
+               required=false, placeholder=none, width=none, attrs="") -%}
+  {%- set _id = "f-" ~ name -%}
+  {%- if kind == "checkbox" -%}
+    <label class="check" for="{{ _id }}" data-tap="inline">
+      <input type="checkbox" id="{{ _id }}" name="{{ name }}"
+             {%- if value %} checked{% endif %} {{ attrs|safe }}>
+      <span>{{ label }}</span>
+    </label>
+    {%- if hint %}<span class="field-hint">{{ hint }}</span>{% endif -%}
+  {%- else -%}
+    <div class="field">
+      <label class="field-label" for="{{ _id }}">
+        {{ label }}{% if required %} <span class="muted" aria-hidden="true">*</span>{% endif %}
+      </label>
+      {%- if kind == "textarea" -%}
+        <textarea class="textarea" id="{{ _id }}" name="{{ name }}" data-tap
+          {%- if placeholder %} placeholder="{{ placeholder }}"{% endif -%}
+          {%- if required %} required{% endif -%}
+          {%- if error %} aria-invalid="true"{% endif %} {{ attrs|safe }}>{{ value }}</textarea>
+      {%- else -%}
+        {#- width is content-keyed: pass "amount", "date", "name", "count",
+            "status" or "search". There is exactly one right width for an amount
+            field and its name is the word "amount".                          -#}
+        <input class="input{% if width %} w-{{ width }}{% endif %}" type="{{ kind }}"
+               id="{{ _id }}" name="{{ name }}" value="{{ value }}" data-tap
+          {%- if placeholder %} placeholder="{{ placeholder }}"{% endif -%}
+          {%- if required %} required{% endif -%}
+          {%- if error %} aria-invalid="true"{% endif %} {{ attrs|safe }}>
+      {%- endif -%}
+      {%- if error %}<span class="field-error">{{ error }}</span>
+      {%- elif hint %}<span class="field-hint">{{ hint }}</span>{% endif -%}
+    </div>
+  {%- endif -%}
+{%- endmacro %}
+
+{#- ── 4. select — writes its own wrapper ──────────────────────────────────── -#}
+{% macro select(name, label, options, value=none, hint=none, width=none, attrs="") -%}
+  {%- set _id = "f-" ~ name -%}
+  <div class="field">
+    <label class="field-label" for="{{ _id }}">{{ label }}</label>
+    <span class="select-wrap{% if width %} w-{{ width }}{% endif %}">
+      <select class="select" id="{{ _id }}" name="{{ name }}" data-tap {{ attrs|safe }}>
+        {%- for o in options -%}
+          {%- set ov = o.value if o is mapping else o -%}
+          {%- set ol = o.label if o is mapping else o -%}
+          <option value="{{ ov }}"{% if ov == value %} selected{% endif %}>{{ ol }}</option>
+        {%- endfor -%}
+      </select>
+    </span>
+    {%- if hint %}<span class="field-hint">{{ hint }}</span>{% endif -%}
+  </div>
+{%- endmacro %}
+
+{#- ── 5. toolbar — the filter bar ─────────────────────────────────────────── -#}
+{% macro toolbar(method="get", action="") %}
+  <form class="toolbar" method="{{ method }}" action="{{ action }}">
+    {{ caller() }}
+  </form>
+{% endmacro %}
+
+{#- ── 6. table — writes its own scroll container ──────────────────────────── -#}
+{#-  columns: [{key, label, num=false, width=none, nowrap=false}]
+     rows:    list of mappings, or of objects with those attributes.
+     A cell may be pre-rendered: pass the value already wrapped by amount() or
+     pill() and mark the column safe=true.                                    -#}
+{% macro table(columns, rows, empty_title=none, empty_hint=none,
+               row_key=none, highlight=none) -%}
+  {%- if rows -%}
+  <div class="table-scroll">
+    <table class="table">
+      <thead><tr>
+        {%- for c in columns -%}
+          <th class="{{ 'num ' if c.get('num') }}{{ 'w-' ~ c.width if c.get('width') }}">
+            {{ c.label }}</th>
+        {%- endfor -%}
+      </tr></thead>
+      <tbody>
+        {%- for r in rows -%}
+          <tr{% if highlight and highlight(r) %} data-highlight{% endif %}
+             {%- if row_key %} data-key="{{ row_key(r) }}"{% endif %}>
+            {%- for c in columns -%}
+              {%- set v = r[c.key] if r is mapping else r|attr(c.key) -%}
+              <td class="{{ 'num ' if c.get('num') }}{{ 'nowrap' if c.get('nowrap') }}">
+                {%- if c.get("safe") %}{{ v|safe }}{% else %}{{ v }}{% endif -%}
+              </td>
+            {%- endfor -%}
+          </tr>
+        {%- endfor -%}
+      </tbody>
+    </table>
+  </div>
+  {%- else -%}
+    {{ empty(empty_title or ds_t("nothing_here"), empty_hint) }}
+  {%- endif -%}
+{%- endmacro %}
+
+{#- ── 7. pagination ───────────────────────────────────────────────────────── -#}
+{% macro pagination(page, pages, url) -%}
+  {%- if pages > 1 -%}
+  <nav class="pagination" aria-label="{{ ds_t('pagination') }}">
+    {{ button(ds_t("previous"), intent="quiet", href=url(page - 1) if page > 1 else none,
+              disabled=(page <= 1), size="sm") }}
+    <span class="pagination-current">{{ page }} / {{ pages }}</span>
+    {{ button(ds_t("next"), intent="quiet", href=url(page + 1) if page < pages else none,
+              disabled=(page >= pages), size="sm") }}
+  </nav>
+  {%- endif -%}
+{%- endmacro %}
+
+{#- ── 8. card ─────────────────────────────────────────────────────────────── -#}
+{% macro card(title=none, featured=false, aside=none) %}
+  <section class="card{{ ' card-featured' if featured }}">
+    {%- if title or aside -%}
+      <header class="card-head">
+        {%- if title %}<h3 class="card-title">{{ title }}</h3>{% endif -%}
+        {%- if aside %}<div>{{ aside }}</div>{% endif -%}
+      </header>
+    {%- endif -%}
+    {{ caller() }}
+  </section>
+{% endmacro %}
+
+{#- ── 9. stat ─────────────────────────────────────────────────────────────── -#}
+{% macro stat(label, value, unit=none) -%}
+  <div class="stat">
+    <div class="stat-label">{{ label }}</div>
+    <div class="stat-value">{{ value }}{% if unit %}<span class="stat-unit">{{ unit }}</span>{% endif %}</div>
+  </div>
+{%- endmacro %}
+
+{#- ── 10. pill ────────────────────────────────────────────────────────────── -#}
+{% macro pill(text, intent="neutral") -%}
+  {%- set _ok = ("ok", "warn", "danger", "neutral") -%}
+  {%- if intent not in _ok -%}
+    {{ ds_fail("pill(intent=%r) — the closed set is %s" % (intent, _ok|join(", "))) }}
+  {%- endif -%}
+  <span class="pill pill-{{ intent }}">{{ text }}</span>
+{%- endmacro %}
+
+{#- ── 11. alert ───────────────────────────────────────────────────────────── -#}
+{% macro alert(text, intent="warn", title=none) -%}
+  {%- set _ok = ("ok", "warn", "danger") -%}
+  {%- if intent not in _ok -%}
+    {{ ds_fail("alert(intent=%r) — the closed set is %s" % (intent, _ok|join(", "))) }}
+  {%- endif -%}
+  <div class="alert alert-{{ intent }}" role="{{ 'alert' if intent == 'danger' else 'status' }}">
+    <div class="alert-body">
+      {%- if title %}<strong>{{ title }}</strong><br>{% endif -%}
+      {{ text }}
+    </div>
+  </div>
+{%- endmacro %}
+
+{#- ── 12. empty — written by default, not discovered in production ────────── -#}
+{% macro empty(title, hint=none, action=none) -%}
+  <div class="empty">
+    <p class="empty-title">{{ title }}</p>
+    {%- if hint %}<p class="empty-hint">{{ hint }}</p>{% endif -%}
+    {%- if action %}{{ button(action.label, intent="primary", href=action.get("href")) }}{% endif -%}
+  </div>
+{%- endmacro %}
+
+{#- ── 13. modal — a real <dialog>; ds.js only opens and closes it ─────────── -#}
+{% macro modal(id, title, size=none) %}
+  <dialog class="modal" id="{{ id }}" aria-labelledby="{{ id }}-t">
+    <form method="dialog">
+      <header class="modal-head">
+        <h3 class="card-title" id="{{ id }}-t">{{ title }}</h3>
+        {{ button(ds_t("close"), intent="quiet", size="sm", attrs='data-ds-close') }}
+      </header>
+      <div class="modal-body">{{ caller() }}</div>
+    </form>
+  </dialog>
+{% endmacro %}
+
+{#- ── 14. tabs — links, not buttons: JavaScript is enhancement, never the
+       mechanism. Each tab is a real URL, so the page works with JS off and the
+       browser back button behaves.                                          -#}
+{% macro tabs(items, active) -%}
+  <nav class="tabs" role="tablist">
+    {%- for t in items -%}
+      <a class="tab" href="{{ t.href }}" role="tab" data-tap="inline"
+         aria-selected="{{ 'true' if t.key == active else 'false' }}">{{ t.label }}</a>
+    {%- endfor -%}
+  </nav>
+{%- endmacro %}
+
+{#- ── 15. breadcrumb ──────────────────────────────────────────────────────── -#}
+{% macro breadcrumb(items) -%}
+  <nav class="breadcrumb" aria-label="{{ ds_t('breadcrumb') }}">
+    {%- for i in items -%}
+      {%- if not loop.last -%}
+        <a href="{{ i.href }}">{{ i.label }}</a>
+        <span class="breadcrumb-sep" aria-hidden="true">/</span>
+      {%- else -%}
+        <span aria-current="page">{{ i.label }}</span>
+      {%- endif -%}
+    {%- endfor -%}
+  </nav>
+{%- endmacro %}
+
+{#- ── 16. amount — one of the two numeric islands ─────────────────────────── -#}
+{#-  Money is read left-to-right even inside right-to-left prose. The macro isolates
+     the direction so the digits cannot reorder, and formats through ds_money so
+     the thousands separator is decided in one place rather than per template. -#}
+{% macro amount(value, unit=none, negative=none) -%}
+  {%- set _neg = negative if negative is not none else (value is number and value < 0) -%}
+  <span class="amount{{ ' amount-neg' if _neg }}">{{ value|ds_money }}{% if unit %}&nbsp;{{ unit }}{% endif %}</span>
+{%- endmacro %}
+
+{#- ── 17. datestamp — the other numeric island ────────────────────────────── -#}
+{% macro datestamp(value, with_time=false) -%}
+  <span class="datestamp">{{ value|ds_date(with_time) }}</span>
+{%- endmacro %}

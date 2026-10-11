@@ -1,0 +1,56 @@
+# db + the app's processes, one image. Migrations are run on purpose, not at start-up:
+#   docker compose run --rm web alembic upgrade head
+# Every setting a process reads is passed to THAT process — the first factory app's first deploy found
+# four settings in config.py that no container ever received, so production ran on laptop defaults.
+name: factory-app
+
+x-app: &app
+  image: factory-app:local
+  restart: unless-stopped
+  depends_on:
+    db:
+      condition: service_healthy
+  environment: &env
+    DB_DSN: postgresql+asyncpg://app:${APP_DB_PASSWORD:?set APP_DB_PASSWORD in .env}@db:5432/app
+    OBS_LOG_LEVEL: ${OBS_LOG_LEVEL:-INFO}
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_DB: app
+      POSTGRES_PASSWORD: ${APP_DB_PASSWORD:?set APP_DB_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:${APP_DB_HOST_PORT_NUMBER:-55440}:5432"   # loopback only, never public
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U app -d app"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  web:
+    <<: *app
+    build: .
+    command: ["python", "-m", "app.web.app"]
+    environment:
+      <<: *env
+      WEB_BIND_HOST: 0.0.0.0
+      AUTH_SESSION_SIGNING_KEY: ${AUTH_SESSION_SIGNING_KEY:?set AUTH_SESSION_SIGNING_KEY in .env}
+    ports:
+      - "127.0.0.1:${WEB_HOST_PORT_NUMBER:-8040}:8000"         # the reverse proxy reaches it here
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/health', timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  jobs:
+    <<: *app
+    command: ["python", "-m", "app.jobs.runner"]
+
+volumes:
+  db-data:

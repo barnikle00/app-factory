@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}کلیدها{% endblock %}
+{% block content %}
+<h1>کلیدها</h1>
+<p>هر کاری که اپ در سیستمی بیرونی انجام می‌دهد یک کلید دارد و تا کسی روشنش نکند خاموش است.
+روشن کردن دوبارهٔ یک کلید، توقف خودکارش را هم برمی‌دارد.</p>
+<table>
+  <thead><tr><th>کلید</th><th>وضعیت</th><th>آخرین تغییر</th><th></th></tr></thead>
+  <tbody>
+  {% for s in switches %}
+    <tr>
+      <td dir="ltr">{{ s.name }}</td>
+      <td>{{ "روشن" if s.is_on else "خاموش" }}</td>
+      <td>{{ s.changed_at | local }}</td>
+      <td>
+        <form method="post" action="/switches">
+          <input type="hidden" name="name" value="{{ s.name }}">
+          <input type="hidden" name="on" value="{{ "0" if s.is_on else "1" }}">
+          <button type="submit">{{ "خاموش کن" if s.is_on else "روشن کن" }}</button>
+        </form>
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="4">هنوز کلیدی ساخته نشده است.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+<form method="post" action="/switches">
+  <label>کلید تازه <input name="name" dir="ltr" placeholder="write:telegram" required></label>
+  <input type="hidden" name="on" value="0">
+  <button type="submit">بساز (خاموش)</button>
+</form>
+{% endblock %}

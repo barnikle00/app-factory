@@ -1,0 +1,54 @@
+{#-
+  base.html — the page shell. Every screen extends this and overrides `body`.
+
+  The three things it settles once, so no screen has to get them right again:
+  dir="rtl" and lang="fa" on the root, the stylesheet order (brand then core —
+  never the other way round, or the brand's values arrive after the rules that
+  read them), and a viewport that permits zoom. The prior art's other Jinja app
+  re-learned each of these from zero and got the first one wrong.
+-#}
+<!doctype html>
+<html lang="{{ ds_lang|default('en') }}" dir="{{ ds_dir|default('ltr') }}"
+      data-brand="{{ ds_brand }}">
+<head>
+  <meta charset="utf-8">
+  {#- No maximum-scale and no user-scalable=no. Blocking zoom on a
+      dashboard is an accessibility failure, not a design decision.         -#}
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ ds_app_name }}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ ds_static('fonts.css') }}">
+  <link rel="stylesheet" href="{{ ds_static('brand-' ~ ds_brand ~ '.css') }}">
+  <link rel="stylesheet" href="{{ ds_static('core.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  {% block chrome %}
+  <header class="chrome">
+    <a class="chrome-brand" href="/">{{ ds_app_name }}</a>
+    {% block nav %}{% endblock %}
+    <span class="chrome-spacer"></span>
+    {% block chrome_end %}{% endblock %}
+  </header>
+  {% endblock %}
+
+  <main class="page" id="main">
+    {% block breadcrumb %}{% endblock %}
+    {% block flash %}
+      {%- if ds_flash -%}
+        {%- for f in ds_flash -%}
+          {% import "ds.html" as ds %}{{ ds.alert(f.text, intent=f.intent) }}
+        {%- endfor -%}
+      {%- endif -%}
+    {% endblock %}
+    {#- `content` is the kit's block name; a page written for either shell renders in this one. -#}
+    {% block body %}{% block content %}{% endblock %}{% endblock %}
+  </main>
+
+  {% block foot %}{% endblock %}
+
+  {#- Loaded last and deferred. Everything above works with it removed — that is
+      the behaviour rule, and /-/verify checks it by fetching the page's own HTML
+      and counting the mechanism.                                            -#}
+  <script src="{{ ds_static('ds.js') }}" defer></script>
+</body>
+</html>
