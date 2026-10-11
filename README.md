@@ -16,6 +16,8 @@ idea ─► design-task ─► design-architecture ─► build-spec ─► buil
                         design item            phase
 ```
 
+New here? Read **[GETTING-STARTED.md](GETTING-STARTED.md)** — the first hour, what "working" looks like, and how to report a problem.
+
 ## What it is for
 
 Server-rendered **web apps in Python** — FastAPI, PostgreSQL, Jinja templates: panels, dashboards,
