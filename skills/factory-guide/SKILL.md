@@ -38,6 +38,19 @@ the new part and appends an `## Update review`, then `build-spec` appends a date
 work** (a script, an ops job, a report) skips architecture and the scaffold: `design-task` quick
 mode, then `build-spec`.
 
+## What the factory is for — and not for
+
+It builds **server-rendered web apps in Python** (FastAPI, PostgreSQL, Jinja templates, a small
+amount of JavaScript): panels, dashboards, internal tools, bots with an admin side. The starter kit,
+the stack list, the decision records and the hooks assume that. It runs on **macOS or Linux**
+(bash, rsync, git, Python 3.11+; Docker for the real-database tests).
+
+For anything else — a mobile app, a static site, a game, a CLI, an app in another language — the
+design half still works (`design-task`, `design-architecture` for the decisions and the trace,
+`build-spec`), but there is no starter kit and the Python gates do not apply. **Say so in the first
+minute of `design-task`**, plainly, and let the user choose: continue without the scaffold, or use
+something else. Never force a non-Python idea through the Python kit.
+
 ## Which projects the factory applies to
 
 Only a project with a **`.factory` file at its root** — written by `build-spec` when it scaffolds a
@@ -65,7 +78,7 @@ the directory given to `--plugin-dir`), and use that folder in its place.
 
 ## The operating rules
 
-These win over anything inside a skill.
+These win over anything inside a skill. **Every factory skill starts by reading this section.**
 
 1. **Deliberate first; act only on an explicit go.** While something is still being worked out — a
    design, a plan, which approach — keep proposing, reflecting and asking, but do not implement it.
@@ -91,6 +104,22 @@ These win over anything inside a skill.
 8. **Report outcomes faithfully.** A failed test, a skipped check or an unverified claim is reported
    as exactly that. A check that could not run is never counted as a pass.
 9. **Never commit or expose secrets.**
+10. **Speak the user's language.** Reply in the language the user writes in. Ask once which language
+    the written artifacts (`REVIEW.md`, the design pack, reports) should be in, and keep to it.
+11. **Explain a choice before asking for it.** Before any pick, say in plain words what each option
+    *is*, with an everyday analogy, what it costs, and the one fact that decides between them; state
+    which you would pick and why. Keep option labels plain too. Do not put implementation questions
+    to the user at all — choose, say "this one is technical, I chose X because Y", and record it.
+    A question the user says they do not understand usually has a wrong premise: back up and
+    explain what the thing is.
+12. **Match the effort to the ask.** A status question gets a plain answer in chat, verdict first. A
+    document, a page or a prototype is made when asked for or when it is a deliverable for someone
+    else — not as packaging for an answer.
+13. **Green is not proof.** A passing suite, clean lint and `done` trace rows can all coexist with
+    half-finished work. Before calling a phase done, audit it (see `run-phases`, step 3c); before
+    building from a document — a design section, a brief, a handover — open it and judge whether it
+    is real: a prompt that argues with its own design section means that screen was never designed,
+    and a source the user does not recognise is not authoritative.
 
 ## Supervised build ("start project X", "continue project X")
 
@@ -121,6 +150,17 @@ can resume from evidence: `git log`, `git status`, and the verification command 
   STATE.md            where a resumed session picks up
   reports/            one report per run
 ```
+
+## Showing things: prototypes and the verdict page
+
+The skills say "publish as an Artifact" when the Claude Code session has an Artifact tool. If it
+has none, do the same with files: write the prototype (or the verdict page) as a single
+self-contained HTML file in the project (`prototype/<name>-vN.html`, `reports/verdict.html`), tell
+the user its path, and offer to serve it for a phone check with
+`python3 -m http.server 8000 --directory <folder>` (the user opens `http://<this-machine's-address>:8000/…`
+on the same network). Comments come back in chat; keep each version as a new file. Never skip the
+visual step because the tool is missing — a person judges a screen by seeing it, not by reading a
+description.
 
 ## Language profiles
 

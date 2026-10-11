@@ -34,6 +34,9 @@ CHECKS = [
     ("ruff", find_ruff() is not None,
      "formats and lints every file a session writes in a factory project",
      "uv tool install ruff   (or: pipx install ruff)", True),
+    ("bash and rsync", shutil.which("bash") is not None and shutil.which("rsync") is not None,
+     "build-spec step 0 lays the starter kit down with them (macOS or Linux; Windows needs WSL)",
+     "install rsync (apt install rsync / brew install rsync)", True),
     ("uv", shutil.which("uv") is not None,
      "builds a new app's virtual environment from the starter kit",
      "curl -LsSf https://astral.sh/uv/install.sh | sh", False),
@@ -46,6 +49,18 @@ CHECKS = [
 ]
 
 
+def ruff_note() -> str | None:
+    exe = find_ruff()
+    if not exe:
+        return None
+    out = subprocess.run([exe, "--version"], capture_output=True, text=True).stdout.strip()
+    if out.startswith("ruff 0.16."):
+        return None
+    return (f"{out or 'ruff'} found; the factory's rules were written and tested against ruff 0.16.x. "
+            "A much newer ruff may reject the config or flag more — if the hook complains about the config "
+            "itself, install 0.16.x: uv tool install 'ruff==0.16.*'")
+
+
 def main() -> int:
     missing_required = False
     for name, ok, why, fix, required in CHECKS:
@@ -53,6 +68,9 @@ def main() -> int:
         if not ok:
             print(f"           needed for: {why}\n           fix: {fix}")
             missing_required |= required
+    note = ruff_note()
+    if note:
+        print(f"  NOTE     {note}")
     print()
     if missing_required:
         print("Something every factory project needs is missing — see above.")

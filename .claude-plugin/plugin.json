@@ -1,6 +1,6 @@
 {
   "name": "app-factory",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A gated process for building a real app with Claude Code: design interview, locked design, architecture decisions that are enforced by hooks, a phased spec, unattended phase runs behind mechanical gates, and a final check that proves the build matches the design.",
   "author": {
     "name": "barnikle00"

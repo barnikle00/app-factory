@@ -16,6 +16,17 @@ idea ─► design-task ─► design-architecture ─► build-spec ─► buil
                         design item            phase
 ```
 
+## What it is for
+
+Server-rendered **web apps in Python** — FastAPI, PostgreSQL, Jinja templates: panels, dashboards,
+internal tools, bots with an admin side. The starter kit, the library list, the decision records and
+the hooks all assume that. It runs on **macOS or Linux** (bash, rsync, git, Python 3.11+; Docker for
+the real-database tests).
+
+For another kind of project (a mobile app, a static site, a CLI) the design half still helps —
+interview, architecture decisions, trace, spec — but there is no starter kit and the Python gates do
+not apply; the first skill says so up front.
+
 ## Install
 
 ```text
@@ -66,6 +77,30 @@ Start in an empty folder and say:
 | `foundation/stack.md` | one checked library pick per job |
 | `foundation/profiles/` | language overlays — today `persian` (right-to-left pages, Jalali dates, Persian digits) |
 | `tests/` | the factory's own test suite |
+
+Claude Code will ask you to approve the plugin's hooks when you install it, and may ask before
+running a gate script the first time; allowing `scripts/*` for this plugin avoids repeated prompts.
+
+## What runs on your machine
+
+Nothing runs until you install, and then only inside projects that carry a `.factory` file (which
+`build-spec` writes into a new app). In those projects the hooks in `hooks/hooks.json` do five
+things, all with plain Python scripts you can read in `scripts/`: format and lint each file Claude
+writes (`ruff`), refuse a file over 500 lines, check the file against the project's own decision
+records, run the design linter, and refuse a `git commit` unless the project's tests last passed on
+exactly the tree being committed. A session-start hook prints a short note naming the factory
+projects. Nothing is sent anywhere; no network calls are made by the hooks. Elsewhere they exit
+immediately without touching anything.
+
+## Updating
+
+```text
+/plugin marketplace update app-factory
+/plugin update app-factory@app-factory
+```
+
+An app already scaffolded keeps the copy of the starter kit and decisions it was born with; updating
+the plugin changes the gates and the skills, not your project's files.
 
 ## Language
 

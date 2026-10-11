@@ -15,7 +15,7 @@ description: >
 Step 2 of the app lane: `design-task` → **`design-architecture`** → `build-spec` →
 `run-phases`.
 
-Governed by the factory's operating rules (skill `factory-guide`) — they win.
+**Before anything else, read the operating rules in the skill `factory-guide` (section *The operating rules*)** — they win over anything here.
 
 ## Why this stage exists
 

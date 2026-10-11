@@ -79,6 +79,26 @@ def test_every_hook_command_points_at_a_script_that_exists(event):
         assert script and (ROOT / script.group(1)).is_file(), command
 
 
+def test_every_hook_runs_through_the_python_launcher():
+    for event in HOOKS:
+        for command in commands(event):
+            assert command.startswith('"${CLAUDE_PLUGIN_ROOT}/scripts/py"'), command
+
+
+def test_the_launcher_refuses_loudly_when_no_python_is_new_enough(tmp_path):
+    """macOS ships an old plain `python3`; a gate that cannot run must say so, never read as a pass."""
+    shim = tmp_path / "bin"
+    shim.mkdir()
+    fake = shim / "python3"
+    fake.write_text("#!/bin/sh\nexit 1\n")
+    fake.chmod(0o755)
+    r = subprocess.run([str(ROOT / "scripts" / "py"), "-c", "print('ran')"], capture_output=True,
+                       text=True, env={"PATH": f"{shim}:/usr/bin:/bin"})
+    assert r.returncode == 1 and "did NOT run" in r.stderr and "not a pass" in r.stderr
+    ok = subprocess.run([str(ROOT / "scripts" / "py"), "-c", "print('ran')"], capture_output=True, text=True)
+    assert ok.returncode == 0 and ok.stdout.strip() == "ran"
+
+
 def test_session_start_names_a_factory_project_and_stays_silent_elsewhere(tmp_path):
     (tmp_path / "app").mkdir()
     (tmp_path / "app" / ".factory").write_text("x\n")

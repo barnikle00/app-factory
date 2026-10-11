@@ -1,0 +1,11 @@
+#!/bin/sh
+# Run a factory script under a Python 3.11 or newer — the gates are written for it, and a machine's
+# plain `python3` is often older (macOS ships 3.9). With none found, say so loudly: a gate that
+# could not run must never read as a gate that passed.
+for p in python3.14 python3.13 python3.12 python3.11 python3; do
+  if command -v "$p" >/dev/null 2>&1 && "$p" -c 'import sys; sys.exit(sys.version_info < (3, 11))' 2>/dev/null; then
+    exec "$p" "$@"
+  fi
+done
+echo "app-factory: Python 3.11 or newer is required to run the factory's gates and none was found, so the gates did NOT run. That is not a pass. Install Python 3.11+ (see the README)." >&2
+exit 1

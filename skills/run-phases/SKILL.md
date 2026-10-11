@@ -15,7 +15,7 @@ description: >
 The fourth mode, beside Design → Build-spec → Execute → Update. **Execute, minus the human
 checkpoint between phases.**
 
-Governed by the factory's operating rules (skill `factory-guide`) — they win over anything here.
+**Before anything else, read the operating rules in the skill `factory-guide` (section *The operating rules*)** — they win over anything here.
 One of them is load-bearing and is never relaxed by this skill: **never deploy without explicit
 approval.**
 
@@ -29,7 +29,7 @@ This skill removes the *human* checkpoint and replaces it with **mechanical gate
 loudly**. The trade is explicit: the run goes unattended only as far as the gates can vouch
 for it. The moment a gate can't, it stops — it does not guess and carry on.
 
-## Preconditions — refuse to start unless all four hold
+## Preconditions — refuse to start unless all of these hold
 
 Check these first, in order. A missing one is a **stop**, not something to improvise around.
 
@@ -42,9 +42,14 @@ Check these first, in order. A missing one is a **stop**, not something to impro
 3. **A verification command exists and is written down.** The project must state how its
    suites are run (e.g. `ARCHITECTURE.md §11`). No stated command → you cannot gate on green
    → stop and ask the user to establish one. Do **not** invent a test command.
-4. **The working tree is clean** and you know the branch. Dirty tree → stop and show
+4. **What the phase rests on is real.** Open the design section, brief or handover the phase
+   cites and judge it: is there a prototype view for the screen, and do the numbers it asks for
+   exist as stored data? A prompt that argues with its own source ("§X is stale, §Y wins") means
+   the design was never fixed — stop and split that work out for a design round. A source the user
+   does not recognise is not authoritative; say what it is and ask.
+5. **The working tree is clean** and you know the branch. Dirty tree → stop and show
    `git status`; do not stash or discard anything.
-5. **A factory app carries its marker.** If the project has `adr/` or `ARCHITECTURE.md` but no
+6. **A factory app carries its marker.** If the project has `adr/` or `ARCHITECTURE.md` but no
    `.factory` file at its root, the scaffold only half-ran: every hook and the commit lock will
    stay silent on it, and nothing will say so. Stop and send it back to `build-spec` step 0.
 
@@ -59,6 +64,11 @@ Before the first phase, state back to the user in three lines and get the user's
 - **The budget** — **ask how much headroom the user has** (usage limit, or a wall-clock stop
   time). They can see their usage; you cannot. Take their answer as the real cap and lower the
   phase cap to match it. If they don't know, default to 2 phases, not 5.
+- **The follow-ups** — ask once which follow-up work the run may take on by itself. Offer this
+  bundle: detail decisions settled by your recommendation (written into the report), one fix phase
+  per review finding, an obvious dependency install. Then work to the cap; stop early only on a real
+  gate (red test, deploy/push, a real account, a direction-changing ambiguity) — a run that ends
+  early with a to-do list defeats the point of running unattended.
 - **The gates** — repeat that a red test stops the run, and that nothing will be deployed,
   pushed, or run against production.
 
@@ -270,6 +280,21 @@ makes the phase `partial`: one retry (2b) whose criteria are those lines, verbat
 `partial` stops the run. `UNSURE` lines go into the run report for the user and do not block. The
 review costs one small subagent per phase — it sees one phase's rows and changed files, not the
 project — and it is the cheapest place this drift will ever be caught.
+
+**3c — Audit the phase for half-done work, before the commit.** Green gates cannot see work that
+only *reads* as finished. The reviewer in 3b (or, with no `TRACE.md`, a fresh subagent given the
+same checklist) checks, and reports as `MISMATCHES`:
+- stubs the suite cannot see: a literal `0`, `[]` or `None` passed where a real value belongs, and a
+  docstring or comment describing behaviour the code does not implement;
+- every row the phase marks `done` is **reachable by a user** — a dialog with no button that opens
+  it is not built;
+- caller-controlled inputs (query parameters, posted form fields) cannot crash a route
+  (`.index()`, `int()`, a dict lookup on raw input);
+- no read path can write — a button the design calls a report must not fall through to the branch
+  that commits;
+- dead exports (constants and helpers nothing references): wire, test or delete;
+- the real SQL ran against a real database (`realdb_url`), because fakes prove the logic and never
+  the queries.
 
 **4 — Keep the map true, in the same commit.** If the change touches anything the project's
 maintenance rules list (schema, chokepoint, trap, job, role/gate, test procedure…), update

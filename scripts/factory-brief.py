@@ -30,7 +30,7 @@ BRIEF = """Factory projects here: {projects}. In those projects only:
 - Data tests use a real throwaway PostgreSQL (`realdb_url`). After each phase `budget-check.py`;
   over budget, or the phase marked "real run" done, stops the run for the user.
 - Before a deploy: `final-check` — trace, suites, every button pressed (`press-check.py`, local
-  only), budgets, health, and the verdict page the user reads.
+  only), budgets, health, and the verdict page the user reads. The rules and the build loop: skill `factory-guide`.
 Nothing above applies to any other project in the workspace. The scripts live in `{root}/scripts`."""
 
 

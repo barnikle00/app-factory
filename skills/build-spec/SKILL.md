@@ -17,7 +17,7 @@ from. This is step two; `design-task` is step one. The split is deliberate — t
 phase physically cannot write the workspace, so a shallow interview can't slip straight into a
 finished-looking spec.
 
-Governed by the factory's operating rules (skill `factory-guide`) — they win.
+**Before anything else, read the operating rules in the skill `factory-guide` (section *The operating rules*)** — they win over anything here.
 
 ## The gate — build-spec is the SECOND security layer
 

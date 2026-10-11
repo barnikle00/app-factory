@@ -12,7 +12,7 @@ description: >
 
 # final-check
 
-Governed by the factory's operating rules (skill `factory-guide`) — they win. Never deploy.
+**Before anything else, read the operating rules in the skill `factory-guide` (section *The operating rules*)** — they win over anything here. Never deploy.
 
 ## Why this exists
 
@@ -102,8 +102,8 @@ is right and the design is wrong, that is a `deviation`: put it to the user, and
 
 One row per design promise, green or red; every button's pressed result; whether the suite passed
 on exactly this code; the slowest click and the code size against their budgets; the screens as
-served; and, in its own words, what it does not prove. **Publish it as an Artifact and give him the
-link** — after nineteen green phases on the first factory app the owner's words were "I still
+served; and, in its own words, what it does not prove. **Publish it as an Artifact and give the user the
+link** (no Artifact tool: write `reports/verdict.html` and give its path — see `factory-guide` → *Showing things*) — after nineteen green phases on the first factory app the owner's words were "I still
 am not sure it actually works", because everything that proved the build was written for a
 programmer. The page is built only from what the checks found; never edit it by hand to soften a
 red row.

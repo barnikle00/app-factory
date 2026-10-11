@@ -17,7 +17,7 @@ Turn a rough idea into a **design review** the user can check before anything bu
 exists. This skill *interviews and reflects*; it does **not** write the spec or the prompts —
 that is `build-spec`, and only after explicit approval.
 
-Governed by the factory's operating rules (skill `factory-guide`) — they win over anything here.
+**Before anything else, read the operating rules in the skill `factory-guide` (section *The operating rules*)** — they win over anything here.
 
 ## Why this exists, and the one idea that drives it
 
@@ -61,6 +61,10 @@ never quietly chooses shallow.
   never yours** (§3).
 - **Quick task** → the core fields (objective, task/deliverable, scope, success criteria,
   verification) + the self-pass (§3). Skip exhaustive drilling.
+
+**Fit check, in the first minute.** The factory builds server-rendered Python web apps (see
+`factory-guide` → *What the factory is for*). If the idea is something else, say so plainly and let
+the user choose how to continue before spending an interview on it.
 
 The valve points **up, not down**: even on a quick task, if the self-pass smells something
 bigger, say so — *"this looks larger than a quick task; want the full interview?"* — and
@@ -115,6 +119,7 @@ first complaint with a redesign that missed it.
 prototype as an Artifact** early and iterate on it: publish → the user opens it and comments → read the
 comments → revise → republish, as new versions. This is what got the first factory app close to what was
 in the owner's head; prose descriptions of screens did not. Rules for it:
+- No Artifact tool in this session? Use the file fallback in `factory-guide` → *Showing things*.
 - Keep each version in `<project>/prototype/<name>-vN.html`; never overwrite a version
   the user commented on.
 - Synthetic data shaped on the real figures (inspect them, §1B) — never real customer rows.
@@ -132,6 +137,30 @@ in the owner's head; prose descriptions of screens did not. Rules for it:
   published link **on their own phone** and comment. The first factory app's approved prototype skipped this:
   it had no viewport tag, so a real phone shrank every page from 980px; its folder list was cut off
   and 88 of that page's 90 controls were too small to tap.
+
+**(G) Lead with the finished thing.** Right after the depth dial, ask what the finished result
+looks like and does, concretely — "walk me through the moment someone uses it". Only then ask the
+infrastructure questions (where the data lives, how often it syncs, who may see what), each one
+scoped against that stated result. If you catch yourself assuming a screen, a table or a number the
+user never mentioned, turn the assumption into a pickable question *before* spending more rounds
+on what depends on it.
+
+**(H) Audit the original brief, line by line, early.** Take the user's first message (and any
+brief they pasted) and check each sentence against the current plan. What they explicitly asked for
+and the restructuring lost is the highest-yield gap there is — do it in the first rounds, not the
+thirteenth. When the user asks "what have we missed?", change the *search method* each time rather
+than re-scanning the same way: a concept sweep, the structural joints between parts, a walk through
+what could go wrong for each kind of user, the view of a sceptical critic. For "complete X", build
+the real space from primary documentation and say which cells are impossible and why — never ship
+the reachable subset as if it were the whole.
+
+**(I) The newcomer test, before showing any screen.** Read it as someone seeing it for the first
+time with no guide: does every number say what it counts, every block what it is, every button what
+it will do? Fix a failure by naming things plainly and structuring them — not by stripping content,
+and not by adding explanation sentences. "Too crowded" means split by task (one page or dialog per
+job), never remove capability; folding a mess under a menu is the same mess one click away.
+
+**(J) Choices are explained before they are asked** — see rule 11 in `factory-guide`.
 
 ### Blind-spot seeds, and what to do off-template
 Seed checklists (raise the missing items unprompted):
