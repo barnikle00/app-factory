@@ -9,7 +9,7 @@
       "name": "app-factory",
       "source": "./",
       "description": "Design interview → locked design → architecture and enforced decisions → phased spec → unattended phase runs behind gates → final check against the design.",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "category": "development"
     }
   ]
